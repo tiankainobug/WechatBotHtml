@@ -69,6 +69,12 @@ const data = reactive({
                         action: '/ossService/file/upload',
                         listType: 'image-card',
                         max: 1,
+                        defaultFileList: [{
+                            id: index,
+                            name: '讲师头像',
+                            status: 'finished',
+                            url: row.imgUrl
+                        }],
                         accept: 'image/*',
                         onFinish: ({ file, event }) => uploadFinish(index,file,event),
                         onRemove: () => uploadRemove(index)
@@ -80,10 +86,20 @@ const data = reactive({
     ],
     data: [
         {
-            time: '00 30 6 * * *',
+            time: '00 20 6 * * *',
             text: '翼呼平台巡检完毕，系统正常。',
-            imgUrl: ''
-        }
+            imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/382dde4f11514092b06c7ea040ed1ee7img1.png'
+        },
+        {
+            time: '00 21 9 * * *',
+            text: '翼呼平台巡检完毕，系统正常。',
+            imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/80d55955144d4a4ba651c537ace34806img2.png'
+        },
+        {
+            time: '00 24 15 * * *',
+            text: '翼呼平台巡检完毕，系统正常。',
+            imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/4a1836fa3d21483ea61db5edcf2c2403img3.png'
+        },
     ],
 })
 const uploadFinish = (index,file,event) => {

@@ -10,7 +10,7 @@ const notification = useNotification()
 const common = useCommonStore()
 
 onMounted(() => {
-    const wsConn = 'ws://127.0.0.1:3000/robot'
+    const wsConn = 'ws://124.71.233.254:3000/robot'
 
     ws.initConnection(wsConn, (res) => {
         if (res.id === 'login') {
