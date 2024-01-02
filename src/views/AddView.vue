@@ -1,10 +1,21 @@
 <script setup>
-import {h, onBeforeMount, reactive} from "vue";
+import {h, nextTick, onBeforeMount, reactive} from "vue";
 import {useCommonStore} from "@/stores/common.js";
-import {NButton, NDataTable, NInput, NUpload, NIcon, NTooltip, NGradientText} from "naive-ui";
+import {
+    NButton,
+    NDataTable,
+    NInput,
+    NUpload,
+    NIcon,
+    NTooltip,
+    NGradientText,
+    NDropdown,
+    useNotification
+} from "naive-ui";
 import ws from "@/utils/websocket.js";
 import router from "@/router/index.js";
 
+const notification = useNotification()
 const common = useCommonStore()
 
 onBeforeMount(() => {
@@ -21,7 +32,7 @@ const renderTooltip = (trigger, content) => {
     })
 }
 const data = reactive({
-    topic: '',
+    topic: 'IBOC业务支撑运保',
     columns: [
         {
             title (column) {
@@ -101,13 +112,30 @@ const data = reactive({
             imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/4a1836fa3d21483ea61db5edcf2c2403img3.png'
         },
     ],
+    showDropDown: false,
+    x: 0,
+    y: 0,
+    rowData: {},
+    rowIndex: 0,
+    options: [
+        {
+            label: () => h("span", {
+                style: { color: "red" },
+                onClick: () => {
+                    data.data.splice(data.rowIndex, 1)
+                    notification.success({
+                        content: '删除成功！',
+                        duration: 2000
+                    })
+                }
+            }, "删除"),
+            key: "delete"
+        }
+    ]
 })
 const uploadFinish = (index,file,event) => {
     const res = JSON.parse(event.target.response)
     data.data[index].imgUrl = res.data.fileUrl
-}
-const uploadRemove = () => {
-
 }
 const addData = () => {
     data.data.push({
@@ -119,6 +147,27 @@ const addData = () => {
 const handleStart = () => {
     // 开始定时发送
     ws.sendMessage({type: 'start',data: {dataList: data.data, topic: data.topic}})
+}
+const rowProps = (row,rowIndex) => {
+    return {
+        onContextmenu: (e) => {
+            e.preventDefault();
+            data.showDropDown = false;
+            nextTick().then(() => {
+                data.rowData = row;
+                data.rowIndex = rowIndex;
+                data.showDropDown = true;
+                data.x = e.clientX;
+                data.y = e.clientY;
+            });
+        }
+    };
+}
+const onClickOutside = () => {
+    data.showDropDown = false;
+}
+const handleSelect = () => {
+    data.showDropDown = false;
 }
 </script>
 
@@ -138,6 +187,17 @@ const handleStart = () => {
                 :data="data.data"
                 :bordered="false"
                 max-height="45vh"
+                :row-props="rowProps"
+            />
+            <n-dropdown
+                placement="bottom-start"
+                trigger="manual"
+                :x="data.x"
+                :y="data.y"
+                :options="data.options"
+                :show="data.showDropDown"
+                :on-clickoutside="onClickOutside"
+                @select="handleSelect"
             />
             <n-button style="background-color: #18181C" quaternary @click="addData">
                 <template #icon>
