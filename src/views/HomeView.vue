@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, reactive} from "vue";
-import {NButton, useNotification} from 'naive-ui'
+import {NButton, useNotification, NInput} from 'naive-ui'
 import ws from "@/utils/websocket.js";
 import QRCode from 'qrcode'
 import router from "@/router/index.js";
@@ -8,11 +8,16 @@ import {useCommonStore} from "@/stores/common.js";
 
 const notification = useNotification()
 const common = useCommonStore()
+const data = reactive({
+    name: '',
+    showQRCode: false
+})
+const login = () => {
+    data.showQRCode = true
 
-onMounted(() => {
-    const wsConn = 'ws://124.71.233.254:3000/robot'
-
-    ws.initConnection(wsConn, (res) => {
+    // const wsConn = 'wss://wechat.tiankaisd.fun/websocket/robot'
+    const wsConn = 'ws://localhost:3000/websocket/robot'
+    ws.initConnection(wsConn, data.name, (res) => {
         if (res.id === 'login') {
             console.log('qrcode', res.data)
             // 创建二维码
@@ -24,20 +29,49 @@ onMounted(() => {
         }
         if (res.id === 'loginSuccess') {
             notification.success({
-                content: `${res.data.payload.name},登录成功！`,
+                content: `${res.user.payload.name},登录成功！`,
                 duration: 2000
             })
-            common.setWechatName(res.data.payload.name)
+            common.setWechatName(res.user.payload.name)
+            common.setScheduleList({dataList: res.data, topic: res.topic})
             router.push('/add')
         }
+        if (res.id === 'logout') {
+            notification.success({
+                content: res.data,
+                duration: 2000
+            })
+            router.push('/logout')
+        }
+        if (res.id === 'startSuccess') {
+            notification.success({
+                content: '定时任务开启成功！',
+                duration: 2000
+            })
+            common.setScheduleList(res.data)
+        }
+        if (res.id === 'stopSuccess') {
+            notification.success({
+                content: res.data,
+                duration: 2000
+            })
+            // 定时状态设为关闭
+            common.setScheduleList({})
+        }
     })
-})
+}
 </script>
 
 <template>
     <div class="login">
-        <canvas id="canvas"></canvas>
-        <div style="margin-top: 20px">扫描二维码登录微信～</div>
+        <div v-show="data.showQRCode">
+            <canvas id="canvas"></canvas>
+            <div style="margin-top: 20px">扫描二维码登录微信～</div>
+        </div>
+        <div v-show="!data.showQRCode" class="loginName">
+            <n-input v-model:value="data.name" placeholder="请输入要登录的微信名称"></n-input>
+            <n-button @click="login" style="margin-left: 10px">登录</n-button>
+        </div>
     </div>
 </template>
 
@@ -49,5 +83,9 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+}
+.loginName {
+    display: flex;
+    flex-direction: row;
 }
 </style>

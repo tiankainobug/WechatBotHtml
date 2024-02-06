@@ -5,25 +5,25 @@ const ws = {
     responseData: null,
     url: null,
     callback: null,
-    initConnection: (url, callback) => {
+    initConnection: (url, name, callback) => {
         // 建立连接
         try {
             ws.url = url;
             ws.callback = callback;
             ws.clientConn = new WebSocket(url);
-            ws.initEvent(callback);
+            ws.initEvent(callback, name);
         } catch (err) {
             console.log('WebSocket init err: ', err);
             // 重连
             ws.reconnect();
         }
     },
-    initEvent: (callback) => {
+    initEvent: (callback, name) => {
         if (ws.clientConn) {
             ws.clientConn.onopen = () => {
                 console.log('WebSocket:', 'connect to server');
                 // 登录
-                ws.sendMessage({type: 'login'})
+                ws.sendMessage({type: 'login', name: name})
             };
             ws.clientConn.onmessage = (e) => {
                 if (e.data !== 'pong') {
@@ -70,7 +70,6 @@ const ws = {
         if (ws.clientConn && ws.clientConn.readyState === ws.clientConn.OPEN) {
             try {
                 ws.clientConn.send(JSON.stringify(msg))
-                console.log('msg', msg);
             } catch (err) {
                 console.log('ws sendMessage err: ', err.message);
             }

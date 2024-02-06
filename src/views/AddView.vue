@@ -1,5 +1,5 @@
 <script setup>
-import {h, nextTick, onBeforeMount, reactive} from "vue";
+import {h, nextTick, onBeforeMount, reactive, watch} from "vue";
 import {useCommonStore} from "@/stores/common.js";
 import {
     NButton,
@@ -25,6 +25,17 @@ onBeforeMount(() => {
     }
 })
 
+watch(
+    () => common.scheduleList,
+    (value, oldValue) => {
+        if (value && value.dataList && value.dataList.length > 0) {
+            data.buttonStatus = 'stop'
+        } else {
+            data.buttonStatus = 'start'
+        }
+    }
+)
+
 const renderTooltip = (trigger, content) => {
     return h(NTooltip, null, {
         trigger: () => trigger,
@@ -32,7 +43,7 @@ const renderTooltip = (trigger, content) => {
     })
 }
 const data = reactive({
-    topic: 'IBOC业务支撑运保',
+    topic: common.scheduleList.topic || 'IBOC业务支撑运保',
     columns: [
         {
             title (column) {
@@ -75,43 +86,28 @@ const data = reactive({
             title: '图片(上传要发送的图片)',
             key: 'imgUrl',
             render(row, index) {
+                console.log(row, index)
                 return h(NUpload,
                     {
                         action: '/ossService/file/upload',
                         listType: 'image-card',
                         max: 1,
-                        defaultFileList: [{
+                        defaultFileList: row.imgUrl ? [{
                             id: index,
                             name: '讲师头像',
                             status: 'finished',
                             url: row.imgUrl
-                        }],
+                        }] : [],
                         accept: 'image/*',
-                        onFinish: ({ file, event }) => uploadFinish(index,file,event),
-                        onRemove: () => uploadRemove(index)
+                        showRetryButton: false,
+                        onFinish: ({ file, event }) => uploadFinish(index,file,event)
                     },
                     {default: () => '图片上传'}
                 );
             }
         },
     ],
-    data: [
-        {
-            time: '00 20 6 * * *',
-            text: '翼呼平台巡检完毕，系统正常。',
-            imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/382dde4f11514092b06c7ea040ed1ee7img1.png'
-        },
-        {
-            time: '00 21 9 * * *',
-            text: '翼呼平台巡检完毕，系统正常。',
-            imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/80d55955144d4a4ba651c537ace34806img2.png'
-        },
-        {
-            time: '00 24 15 * * *',
-            text: '翼呼平台巡检完毕，系统正常。',
-            imgUrl: 'https://guli-1227.oss-cn-beijing.aliyuncs.com/2023/12/30/4a1836fa3d21483ea61db5edcf2c2403img3.png'
-        },
-    ],
+    data: common.scheduleList.dataList,
     showDropDown: false,
     x: 0,
     y: 0,
@@ -131,7 +127,11 @@ const data = reactive({
             }, "删除"),
             key: "delete"
         }
-    ]
+    ],
+    // 按钮状态：
+    // start: 开始定时任务
+    // stop: 取消定时任务
+    buttonStatus: common.scheduleList.dataList.length > 0 ? 'stop' : 'start'
 })
 const uploadFinish = (index,file,event) => {
     const res = JSON.parse(event.target.response)
@@ -141,12 +141,16 @@ const addData = () => {
     data.data.push({
         time: '00 30 6 * * *',
         text: '翼呼平台巡检完毕，系统正常。',
-        imgUrl: ''
+        imgUrl: null
     })
 }
 const handleStart = () => {
     // 开始定时发送
     ws.sendMessage({type: 'start',data: {dataList: data.data, topic: data.topic}})
+}
+const handleStop = () => {
+    // 开始定时发送
+    ws.sendMessage({type: 'stop'})
 }
 const rowProps = (row,rowIndex) => {
     return {
@@ -169,6 +173,9 @@ const onClickOutside = () => {
 const handleSelect = () => {
     data.showDropDown = false;
 }
+const logout = () => {
+    ws.sendMessage({type: 'logout'})
+}
 </script>
 
 <template>
@@ -178,7 +185,8 @@ const handleSelect = () => {
                 <span>群聊名称：</span>
                 <n-input v-model:value="data.topic" placeholder="请输入群聊名称"></n-input>
             </div>
-            <n-button style="align-self: flex-end" type="primary" @click="handleStart">开始所有任务</n-button>
+            <n-button v-if="data.buttonStatus === 'start'" style="align-self: flex-end" type="primary" @click="handleStart">开始任务</n-button>
+            <n-button v-if="data.buttonStatus === 'stop'" style="align-self: flex-end" type="primary" @click="handleStop">取消任务</n-button>
         </div>
 
         <div style="margin-top: 20px;display: flex;justify-content: flex-end;flex-direction: column">
@@ -186,7 +194,7 @@ const handleSelect = () => {
                 :columns="data.columns"
                 :data="data.data"
                 :bordered="false"
-                max-height="45vh"
+                max-height="42vh"
                 :row-props="rowProps"
             />
             <n-dropdown
@@ -215,10 +223,13 @@ const handleSelect = () => {
 
         <div style="margin-top: 10px;align-self: flex-end">
             <span>登录微信：{{common.wechatName}}</span>
+            <n-button type="info" @click="logout" style="margin-left: 10px">退出微信</n-button>
         </div>
     </div>
 </template>
 
 <style scoped>
-
+>>> .n-data-table-empty {
+    background-color: #18181C;
+}
 </style>
