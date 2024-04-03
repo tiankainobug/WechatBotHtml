@@ -1,11 +1,21 @@
 <script setup>
 import {onMounted, reactive} from "vue";
-import {NButton, useNotification, NInput} from 'naive-ui'
+import {NButton, useNotification, NSelect} from 'naive-ui'
 import ws from "@/utils/websocket.js";
 import QRCode from 'qrcode'
 import router from "@/router/index.js";
 import {useCommonStore} from "@/stores/common.js";
 
+const options = [
+    {
+        label: "田凯",
+        value: '田凯',
+    },
+    {
+        label: "杜冉",
+        value: '杜冉',
+    },
+]
 const notification = useNotification()
 const common = useCommonStore()
 const data = reactive({
@@ -69,7 +79,7 @@ const login = () => {
             <div style="margin-top: 20px">扫描二维码登录微信～</div>
         </div>
         <div v-show="!data.showQRCode" class="loginName">
-            <n-input v-model:value="data.name" placeholder="请输入要登录的微信名称"></n-input>
+            <n-select v-model:value="data.name" placeholder="请选择要登录的微信名称" :options="options" style="width: 200px"></n-select>
             <n-button @click="login" style="margin-left: 10px">登录</n-button>
         </div>
     </div>
