@@ -5,6 +5,7 @@ import ws from "@/utils/websocket.js";
 import QRCode from 'qrcode'
 import router from "@/router/index.js";
 import {useCommonStore} from "@/stores/common.js";
+import {ws_url} from "../../public/config.js";
 
 const options = [
     {
@@ -24,10 +25,7 @@ const data = reactive({
 })
 const login = () => {
     data.showQRCode = true
-
-    // const wsConn = 'wss://wechat.tiankaisd.fun/websocket/robot'
-    const wsConn = 'ws://localhost:3000/websocket/robot'
-    ws.initConnection(wsConn, data.name, (res) => {
+    ws.initConnection(ws_url, data.name, (res) => {
         if (res.id === 'login') {
             console.log('qrcode', res.data)
             // 创建二维码

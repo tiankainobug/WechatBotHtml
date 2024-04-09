@@ -11,7 +11,8 @@ export default defineConfig({
     open: true,
     proxy: {
       '/ossService': {
-        target: 'http://124.71.233.254:8002/ossService',
+        // target: 'http://172.20.232.54:3000/ossService',
+        target: 'http://124.71.233.254:3000/ossService',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/ossService/, '')
       }
