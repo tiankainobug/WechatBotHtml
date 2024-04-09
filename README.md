@@ -6,7 +6,7 @@
 
 该项目包括前端和后端两部分。
 
-后端链接：
+后端链接：[https://github.com/tiankainobug/WechatBotService](https://github.com/tiankainobug/WechatBotService)
 
 ### 前端框架：
 
