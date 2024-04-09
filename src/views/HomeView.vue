@@ -77,7 +77,7 @@ const login = () => {
             <div style="margin-top: 20px">扫描二维码登录微信～</div>
         </div>
         <div v-show="!data.showQRCode" class="loginName">
-            <n-select v-model:value="data.name" placeholder="请选择要登录的微信名称" :options="options" style="width: 200px"></n-select>
+            <n-select v-model:value="data.name" placeholder="请选择要登录的微信名称" :options="options" style="width: 200px" tag filterable></n-select>
             <n-button @click="login" style="margin-left: 10px">登录</n-button>
         </div>
     </div>
