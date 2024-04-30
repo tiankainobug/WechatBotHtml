@@ -24,16 +24,17 @@ const ws = {
                 console.log('WebSocket:', 'connect to server');
                 // 登录
                 ws.sendMessage({type: 'login', name: name})
+                // 开启心跳
+                ws.sendPong();
             };
             ws.clientConn.onmessage = (e) => {
                 if (e.data !== 'pong') {
-                    // console.log('WebSocket: response msg = ', e.data);
                     // 接收到消息
                     ws.responseData = JSON.parse(e.data);
                     // console.log(ws.responseData.device);
                     callback(ws.responseData);
                 } else {
-                    console.log('WebSocket: response pong msg = ', e.data);
+                    console.log('WebSocket: 收到心跳信息 -> ', e.data);
                 }
             };
             ws.clientConn.onerror = (err) => {
@@ -74,7 +75,7 @@ const ws = {
                 console.log('ws sendMessage err: ', err.message);
             }
         } else {
-            console.log('ws cannot sent msg: ', ws.clientConn, ws.clientConn ? ws.clientConn.readyState : 'error');
+            console.log('ws 发送消息失败: ', ws.clientConn, ws.clientConn ? ws.clientConn.readyState : 'error');
         }
     },
     reconnect: () => {
@@ -91,6 +92,16 @@ const ws = {
             ws.initConnection(ws.url, ws.callback);
         }, 15000);
     },
+    sendPong: () => {
+        // 发送心跳消息
+        if (ws.pongInterval) {
+            clearInterval(ws.pongInterval);
+        }
+        // 每隔20s向服务器发送一次心跳
+        ws.pongInterval = setInterval(()=>{
+            ws.sendMessage('pong');
+        }, 20000);
+    }
 }
 
 export default ws;

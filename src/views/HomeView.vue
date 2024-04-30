@@ -32,7 +32,7 @@ const login = () => {
             const canvas = document.getElementById('canvas');
             QRCode.toCanvas(canvas, res.data, function (error) {
                 if (error) console.error(error)
-                console.log('success!');
+                console.log('创建二维码成功～');
             })
         }
         if (res.id === 'loginSuccess') {
